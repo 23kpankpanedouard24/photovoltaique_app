@@ -61,14 +61,14 @@ app.post('/send-confirmation-email', (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'kpankpan.kambire@gmail.com', // Remplacez par votre adresse identifiant
-          pass: 'zyzx xohc ehpx iraa' // Remplacez par votre mot de passe (ou utilisez des variables d'environnement)
+          user: 'votre adresse gmail', // Remplacez par votre adresse identifiant
+          pass: 'votre mot de passe' // Remplacez par votre mot de passe (ou utilisez des variables d'environnement)
         }
       });
 
       // Contenu de l'email
       const mailOptions = {
-        from: 'kpankpan.kambire@gmail.com',
+        from: 'votre adresse gmail',
         to: identifiant,
         subject: 'Confirmation de votre compte',
         text: `Votre code de confirmation est : ${confirmationCode}`
