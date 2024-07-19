@@ -1,44 +1,45 @@
-/*
+
 document.addEventListener("DOMContentLoaded", function() {
     const apiKey = '5b3ce3597851110001cf62488fa64d9126564119b3571283c0e413f8';
+     
     let map;
-    let userLocation;
-
+    let companyMarker;
     // Fonction pour gérer le changement de rôle
     function handleRoleChange() {
-        const role = document.getElementById('role').value;
-        const installateurOptions = document.getElementById('installateur-options');
-        const utilisateurForm = document.getElementById('utilisateur-form');
-        const loginPrompt = document.getElementById('login-prompt');
-        const createAccountForm = document.getElementById('create-account-form');
-        const confirmAccountForm = document.getElementById('confirm-account-form');
-        const installateurForm = document.getElementById('installateur-form');
-  
-        if (role === 'installateur') {
-          installateurOptions.style.display = 'block';
-          utilisateurForm.style.display = 'none';
-          loginPrompt.style.display = 'none';
-          createAccountForm.style.display = 'none';
-          confirmAccountForm.style.display = 'none';
-          installateurForm.style.display = 'none';
-        } else if (role === 'utilisateur') {
-          utilisateurForm.style.display = 'block';
-          installateurOptions.style.display = 'none';
-          loginPrompt.style.display = 'none';
-          createAccountForm.style.display = 'none';
-          confirmAccountForm.style.display = 'none';
-          installateurForm.style.display = 'none';
-          loadRegions(); // Charger les régions disponibles lors du changement vers utilisateur
-        } else {
-          installateurOptions.style.display = 'none';
-          utilisateurForm.style.display = 'none';
-          loginPrompt.style.display = 'none';
-          createAccountForm.style.display = 'none';
-          confirmAccountForm.style.display = 'none';
-          installateurForm.style.display = 'none';
-        }
-      }
+      const role = document.getElementById('role').value;
+      const installateurOptions = document.getElementById('installateur-options');
+      const utilisateurForm = document.getElementById('utilisateur-form');
+      const loginPrompt = document.getElementById('login-prompt');
+      const createAccountForm = document.getElementById('create-account-form');
+      const confirmAccountForm = document.getElementById('confirm-account-form');
+      const installateurForm = document.getElementById('installateur-form');
 
+      if (role === 'installateur') {
+        installateurOptions.style.display = 'block';
+        utilisateurForm.style.display = 'none';
+        loginPrompt.style.display = 'none';
+        createAccountForm.style.display = 'none';
+        confirmAccountForm.style.display = 'none';
+        installateurForm.style.display = 'none';
+      } else if (role === 'utilisateur') {
+        utilisateurForm.style.display = 'block';
+        installateurOptions.style.display = 'none';
+        loginPrompt.style.display = 'none';
+        createAccountForm.style.display = 'none';
+        confirmAccountForm.style.display = 'none';
+        installateurForm.style.display = 'none';
+        loadRegions(); // Charger les régions disponibles lors du changement vers utilisateur
+      } else {
+        installateurOptions.style.display = 'none';
+        utilisateurForm.style.display = 'none';
+        loginPrompt.style.display = 'none';
+        createAccountForm.style.display = 'none';
+        confirmAccountForm.style.display = 'none';
+        installateurForm.style.display = 'none';
+      }
+    }
+
+    // Fonction pour afficher l'invite de connexion
     function showLoginPrompt() {
       document.getElementById('login-prompt').style.display = 'block';
       document.getElementById('create-account-form').style.display = 'none';
@@ -46,6 +47,15 @@ document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('installateur-form').style.display = 'none';
     }
 
+    // Fonction pour afficher le formulaire de confirmation d'inscription
+    function showConfirmAccountForm() {
+      document.getElementById('confirm-account-form').style.display = 'block';
+      document.getElementById('login-prompt').style.display = 'none';
+      document.getElementById('create-account-form').style.display = 'none';
+      document.getElementById('installateur-form').style.display = 'none';
+    }
+
+    // Fonction pour afficher le formulaire de création de compte
     function showCreateAccountForm() {
       document.getElementById('login-prompt').style.display = 'none';
       document.getElementById('create-account-form').style.display = 'block';
@@ -53,173 +63,122 @@ document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('installateur-form').style.display = 'none';
     }
 
+    // Fonction pour envoyer l'email de confirmation
     function sendConfirmationEmail() {
-        var identifiant = document.getElementById('new-identifiant').value;
-  
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'http://localhost:8080/send-confirmation-email', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onreadystatechange = function () {
-          if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-              alert('Email de confirmation envoyé. Veuillez vérifier votre boîte mail.');
-              // Rediriger ou effectuer d'autres actions après l'envoi réussi de l'email
-            } else if (xhr.status === 409) {
-              alert('Cet identifiant existe déjà. Veuillez vous connecter.');
-              // Gérer le cas où l'identifiant existe déjà
-            } else {
-              alert('Erreur lors de l\'envoi de l\'email de confirmation.');
-              // Gérer d'autres erreurs si nécessaire
-            }
-          }
-        };
-        xhr.send(JSON.stringify({ identifiant: identifiant }));
-      }
+      var identifiant = document.getElementById('new-identifiant').value;
+      var password = document.getElementById('new-password').value;
+
+      axios.post('http://localhost:8080/send-confirmation-email', {
+        identifiant: identifiant,
+        password: password
+      })
+      .then(function (response) {
+        alert('Email de confirmation envoyé. Veuillez vérifier votre boîte mail.');
+        showConfirmAccountForm();
+      })
+      .catch(function (error) {
+        if (error.response && error.response.status === 409) {
+          alert('Cet identifiant existe déjà. Veuillez vous connecter.');
+        } else {
+          alert('Erreur lors de l\'envoi de l\'email de confirmation.');
+        }
+      });
+    }
+
     // Fonction pour confirmer l'inscription
     function confirmAccount() {
-        const confirmationCode = document.getElementById('confirmation-code').value; // Récupérer le code de confirmation depuis le formulaire
-      
-        fetch('/api/confirm-account', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ confirmationCode }),
-        })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error('Code de confirmation invalide.');
-        })
-        .then(data => {
-          alert('Compte confirmé avec succès. Veuillez compléter votre enregistrement.');
-          document.getElementById('installateur-form').style.display = 'block';
-          document.getElementById('confirm-account-form').style.display = 'none';
-        })
-        .catch(error => {
-          console.error('Erreur lors de la confirmation du compte:', error);
-          alert('Erreur lors de la confirmation du compte. Veuillez vérifier votre code de confirmation.');
-        });
-      }
+      var identifiant = document.getElementById('confirm-identifiant').value;
+      var confirmationCode = document.getElementById('confirmation-code').value;
 
-      // Fonction de connexion (à implémenter selon vos besoins)
-    function login() {
-        const identifiant = document.getElementById('identifiant').value; // Récupérer l'identifiant depuis le formulaire
-        const password = document.getElementById('password').value; // Récupérer le mot de passe depuis le formulaire
-      
-        fetch('/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ identifiant, password }),
-        })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error('Identifiant ou mot de passe incorrect.');
-        })
-        .then(data => {
-          alert('Connexion réussie.');
-          // Redirection ou mise à jour de l'interface utilisateur après la connexion réussie
-          document.getElementById('login-prompt').style.display = 'none';
-          document.getElementById('installateur-form').style.display = 'block';
-        })
-        .catch(error => {
-          console.error('Erreur lors de la connexion:', error);
-          alert('Erreur lors de la connexion. Veuillez vérifier votre identifiant ou mot de passe.');
-        });
-      }  
-       
-      async function update(nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite) {
-        const response = await fetch('/api/installer/profile/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite })
+      axios.post('http://localhost:8080/confirm-email', {
+        identifiant: identifiant,
+        confirmationCode: confirmationCode
+      })
+      .then(function (response) {
+        alert('Email confirmé avec succès.');
+        document.getElementById('installateur-form').style.display = 'block';
+        document.getElementById('confirm-account-form').style.display = 'none';
+      })
+      .catch(function (error) {
+        alert('Erreur lors de la confirmation de l\'email.');
       });
-
-      const data = await response.json();
-      return data.success;
     }
-    // Exemple d'utilisation
-    document.getElementById('registerForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-  
-        const password = document.getElementById('password').value;
-        const nom = document.getElementById('nom').value;
-        const adresse = document.getElementById('adresse').value;
-        const ville = document.getElementById('ville').value;
-        const region = document.getElementById('region').value;
-        const mail = document.getElementById('mail').value;
-        const numero = document.getElementById('numero').value;
-        const site_web = document.getElementById('site_web').value;
-        const categorie = document.getElementById('categorie').value;
-        const type_activite = document.getElementById('type_activite').value;
-  
-        const id = await createPassword(password);
-  
-        if (id) {
-          const success = await registerCompany(nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite);
-          if (success) {
-            console.log('Entreprise enregistrée avec succès');
-          } else {
-            console.log('Erreur lors de l\'enregistrement de l\'entreprise');
-          }
-        }
-      });
-      document.getElementById('role').addEventListener('change', handleRoleChange);
-  
-// Fonction pour enregistrer une entreprise (initial ou mise à jour)
-async function registerCompany(nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite, password) {
-    try {
-      const hashedPassword = await hashPassword(password); // Hacher le mot de passe
-      const response = await fetch('/api/installer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite, password: hashedPassword })
-      });
-  
-      const data = await response.json();
-      return data.success;
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement de l\'entreprise:', error);
-      return false;
+
+    // Fonction pour enregistrer les informations de l'entreprise
+function registerCompany() {
+  // Récupérer les valeurs du formulaire d'entreprise
+  var nom = document.getElementById('nom').value;
+  var adresse = document.getElementById('adresse').value;
+  var ville = document.getElementById('ville').value;
+  var region = document.getElementById('region').value;
+  var numero = document.getElementById('numero').value;
+  var mail = document.getElementById('mail').value;
+  var site_web = document.getElementById('site_web').value;
+  var categorie = document.getElementById('categorie').value;
+  var type_activite = document.getElementById('type_activite').value;
+
+  var identifiant = document.getElementById('confirm-identifiant').value;
+
+  // Envoyer les données au serveur
+  axios.post('http://localhost:8080/register-company', {
+    nom: nom,
+    adresse: adresse,
+    ville: ville,
+    region: region,
+    numero: numero,
+    mail: mail,
+    site_web: site_web,
+    categorie: categorie,
+    type_activite: type_activite
+  })
+  .then(response => {
+    console.log('Réponse du serveur:', response.data);
+    alert('Informations de l\'entreprise enregistrées avec succès.');
+  })
+  .catch(error => {
+    console.error('Erreur lors de la requête Axios:', error);
+    alert('Erreur lors de l\'enregistrement des informations de l\'entreprise.');
+  });
+}
+
+
+function login() {
+  const identifiant = document.getElementById('identifiant').value;
+  const password = document.getElementById('password').value;
+
+  axios.post('http://localhost:8080/login', {
+    identifiant: identifiant,
+    password: password
+  })
+  .then(response => {
+    if (response.data.success) {
+      const user = response.data.user;
+      console.log('Réponse du serveur:', user);
+
+      // Remplir le formulaire de mise à jour avec les données de l'utilisateur
+      document.getElementById('nom').value = user.nom;
+      document.getElementById('adresse').value = user.adresse;
+      document.getElementById('ville').value = user.ville;
+      document.getElementById('region').value = user.region;
+      document.getElementById('numero').value = user.numero;
+      document.getElementById('mail').value = user.mail;
+      document.getElementById('site_web').value = user.site_web;
+      document.getElementById('categorie').value = user.categorie;
+      document.getElementById('type_activite').value = user.type_activite;
+
+      // Afficher le formulaire de mise à jour
+      document.getElementById('installateur-form').style.display = 'block';
+      document.getElementById('login-prompt').style.display = 'none';
+    } else {
+      alert('Identifiant ou mot de passe incorrect');
     }
-  }  
-    // Exemple d'utilisation
-    document.getElementById('registerForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const password = document.getElementById('password').value;
-      const nom = document.getElementById('nom').value;
-      const adresse = document.getElementById('adresse').value;
-      const ville = document.getElementById('ville').value;
-      const region = document.getElementById('region').value;
-      const mail = document.getElementById('mail').value;
-      const numero = document.getElementById('numero').value;
-      const site_web = document.getElementById('site_web').value;
-      const categorie = document.getElementById('categorie').value;
-      const type_activite = document.getElementById('type_activite').value;
-
-      const id = await createPassword(password);
-
-      if (id) {
-        const success = await registerCompany(nom, adresse, ville, region, numero, mail, site_web, categorie, type_activite);
-        if (success) {
-          console.log('Entreprise enregistrée avec succès');
-        } else {
-          console.log('Erreur lors de l\'enregistrement de l\'entreprise');
-        }
-      }
-    });
-    document.getElementById('role').addEventListener('change', handleRoleChange);
-
+  })
+  .catch(error => {
+    console.error('Erreur lors de la requête Axios:', error);
+    alert('Erreur lors de la connexion. Veuillez réessayer.');
+  });
+}
+    
     async function loadRegions() {
       try {
         const response = await fetch('/api/regions');
@@ -317,6 +276,7 @@ async function registerCompany(nom, adresse, ville, region, numero, mail, site_w
       companyInfo.appendChild(routeButton);
     }
 
+    // Fonction pour localiser une entreprise sur la carte
     async function locateCompanyOnMap(address) {
       try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
@@ -327,12 +287,20 @@ async function registerCompany(nom, adresse, ville, region, numero, mail, site_w
         if (data.length > 0) {
           const { lat, lon } = data[0];
           const destinationCoords = [lat, lon];
+          console.log('destinationCoords')
 
-          map.setView(destinationCoords, 13);
+          // Supprimer le marqueur existant s'il y en a un
+          if (companyMarker) {
+            map.removeLayer(companyMarker);
+          }
 
-          L.marker(destinationCoords).addTo(map)
+          // Ajouter le marqueur à la carte
+          companyMarker = L.marker(destinationCoords).addTo(map)
             .bindPopup(`<b>${address}</b>`)
             .openPopup();
+
+          // Centrer la carte sur la position de l'entreprise
+          map.setView(destinationCoords, 13);
         } else {
           alert('Adresse de destination introuvable');
         }
@@ -341,55 +309,41 @@ async function registerCompany(nom, adresse, ville, region, numero, mail, site_w
       }
     }
 
-    async function traceItineraryToCompany(address) {
-      try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
-        if (!response.ok) {
-          throw new Error('Adresse de destination introuvable');
-        }
-        const data = await response.json();
-        if (data.length > 0) {
-          const { lat, lon } = data[0];
-          const destinationCoords = [lat, lon];
-
-          if (userLocation) {
-            getRoute(userLocation, destinationCoords);
-          } else {
-            alert('Localisation utilisateur introuvable');
+    
+    function traceItineraryToCompany(address) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            const startCoords = `${latitude},${longitude}`;
+            const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${startCoords}&destination=${encodeURIComponent(address)}`;
+            window.open(mapsUrl, '_blank');
+          },
+          error => {
+            console.error('Erreur lors de l\'obtention de la position de l\'utilisateur:', error);
+            alert('Erreur lors de l\'obtention de la position de l\'utilisateur. Veuillez vérifier les paramètres de localisation de votre navigateur.');
           }
-        } else {
-          alert('Adresse de destination introuvable');
-        }
-      } catch (error) {
-        console.error('Erreur lors de la récupération des coordonnées:', error);
+        );
+      } else {
+        alert('La géolocalisation n\'est pas supportée par ce navigateur.');
       }
     }
-
-    async function getRoute(start, end) {
-      try {
-        const apiUrl = `/api/directions?start=${start.lng},${start.lat}&end=${end[1]},${end[0]}`;
-        const response = await fetch(apiUrl);
-        if (companyInfo.latitude && companyInfo.longitude) {
-            const marker = L.marker([companyInfo.latitude, companyInfo.longitude]).addTo(map);
-            map.setView([companyInfo.latitude, companyInfo.longitude], 10);
-            marker.bindPopup(`<b>${companyInfo.nom}</b><br>${companyInfo.adresse}`).openPopup();
-          }
-        const routeData = await response.json();
-
-        const coords = routeData.features[0].geometry.coordinates;
-        const latLngs = coords.map(coord => [coord[1], coord[0]]);
-
-        const polyline = L.polyline(latLngs, { color: 'blue' }).addTo(map);
-        map.fitBounds(polyline.getBounds());
-      } catch (error) {
-        console.error('Erreur lors de la récupération de l\'itinéraire:', error);
-        alert('Erreur lors de la récupération de l\'itinéraire');
-      }
-    }
-
+    
+    
     document.getElementById('search-button').addEventListener('click', searchCompanies);
     document.getElementById('display-company-button').addEventListener('click', displayCompanyInfo);
+    document.getElementById('role').addEventListener('change', handleRoleChange);
 
-    initializeMap();
+    // Fonction pour initialiser la carte avec Leaflet
+    function initializeMap() { 
+      var map = L.map('map').setView([31.7917, -7.0926], 8); // Remplacez les coordonnées par celles de votre choix
+  
+      L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri'
+    }).addTo(map);
+}
+  
+    // Initialiser la carte lorsque le DOM est chargé
+    document.addEventListener('DOMContentLoaded', initializeMap);
+  
 });
-*/
